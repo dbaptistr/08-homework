@@ -12,11 +12,88 @@ var svg = d3
   .append('g')
   .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
+let radius = 200
+
+let radiusScale = d3
+  .scaleLinear()
+  .domain([0, 90])
+  .range([0, radius])
+
+// let months = [
+//  'Jan',
+//  'Feb',
+//   'Mar',
+//   'Apr',
+//   'May',
+//   'Jun',
+//   'Jul',
+//   'Aug',
+//   'Sep',
+//   'Oct',
+//   'Nov',
+//   'Dec'
+// ]
+
+// var angleScale = d3
+//  .scaleBand()
+//  .domain(months)
+//  .range([0, Math.PI * 2])
+
+var pie = d3
+  .pie()
+  .value(1 / 12)
+  .sort(null)
+
+var colorScale = d3
+  .scaleLinear()
+  .domain([0, 90])
+  .range(['#b3cde3', '#fbb4b9'])
+
+var arc = d3
+  .arc()
+  .innerRadius(0)
+  .outerRadius(d => radiusScale(d.data.high_temp))
+
+// var arc = d3
+//   .arc()
+//   .innerRadius(d => radiusScale(0))
+//   .outerRadius(d => radiusScale(+d.high_temp))
+//   .startAngle(d => angleScale(d.month_name))
+//   .endAngle(d => angleScale(d.month_name) + angleScale.bandwidth())
 
 d3.csv(require('./data/ny-temps.csv'))
   .then(ready)
   .catch(err => console.log('Failed on', err))
 
 function ready(datapoints) {
+  // datapoints.push(datapoints[0])
+  var holder = svg
+    .append('g')
+    .attr('transform', `translate(${width / 2},${height / 2})`)
 
+  holder
+    // .selectAll('.temp-bar')
+    // .data(datapoints)
+    .selectAll('.charts-paths')
+    .data(pie(datapoints))
+    .enter()
+    .append('path')
+    .attr('class', 'charts-paths')
+    .attr('d', d => arc(d))
+    // .attr('fill', d => colorScale(+d.high_temp))
+    .attr('fill', d => colorScale(d.data.high_temp))
+
+  holder
+    .append('circle')
+    .attr('r', 3)
+    .attr('cx', 0)
+    .attr('cy', 0)
+
+  holder
+    .append('text')
+    .text('NYC high temperatures, by month')
+    .attr('text-anchor', 'middle')
+    .attr('font-size', 30)
+    .attr('y', -170)
+    .attr('font-weight', '600')
 }

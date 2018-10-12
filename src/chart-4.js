@@ -12,33 +12,14 @@ var svg = d3
   .append('g')
   .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
-let radius = 200
+let radius = 170
 
 let radiusScale = d3
   .scaleLinear()
   .domain([0, 90])
   .range([0, radius])
 
-let months = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-  'Jan'
-]
-
-var angleScale = d3
-  .scaleBand()
-  .domain(months)
-  .range([0, Math.PI * 2])
+var angleScale = d3.scaleBand().range([0, Math.PI * 2])
 
 var line = d3
   .radialArea()
@@ -46,15 +27,15 @@ var line = d3
   .outerRadius(d => radiusScale(d.high_temp))
   .angle(d => angleScale(d.month_name))
 
-// min = 0
-// max = 70
-
 d3.csv(require('./data/ny-temps.csv'))
   .then(ready)
   .catch(err => console.log('Failed with', err))
 
 function ready(datapoints) {
   datapoints.push(datapoints[0])
+
+  let months = datapoints.map(d => d.month_name)
+  angleScale.domain(months)
 
   var holder = svg
     .append('g')
@@ -69,7 +50,8 @@ function ready(datapoints) {
     .attr('stroke', 'none')
     .attr('opacity', 0.5)
 
-  let bands = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+  let bands = [20, 30, 40, 50, 60, 70, 80, 90]
+  let bandsShown = [30, 50, 70, 90]
 
   holder
     .selectAll('.scale-band')
@@ -82,4 +64,25 @@ function ready(datapoints) {
     .attr('cx', 0)
     .attr('cy', 0)
     .lower()
+
+  holder
+    .selectAll('.scale-text')
+    .data(bandsShown)
+    .enter()
+    .append('text')
+    .attr('class', 'scale-text')
+    .text(d => d + '°')
+    .attr('text-anchor', 'middle')
+    .attr('x', 0)
+    .attr('y', d => -radiusScale(d))
+    .attr('dy', -3)
+    .attr('font-size', 10)
+
+  holder
+    .append('text')
+    .text('NYC')
+    .attr('text-anchor', 'middle')
+    .attr('font-size', 30)
+    .attr('y', 0)
+    .attr('font-weight', '600')
 }
